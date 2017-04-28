@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Blobstore demo</title>
+</head>
+<body>
+<form id="form">
+    <input type="file" accept="video/*" name="file">
+    <input type="button" value="uploadToGCS" id="upload">
+    <span id="progress"></span>
+</form>
+<video id="preview-url" controls autoplay></video>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+ $(function(){
+
+    $('#upload').click(function() {
+        $.get('/api/url', null).done(function(data){
+            var formData  = new FormData($("#form")[0]);
+            $.ajax({
+                url: data.url,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                enctype  : 'multipart/form-data',
+                dataType: 'json',
+                xhr : function(){
+                    XHR = $.ajaxSettings.xhr();
+                    if(XHR.upload){
+		                XHR.upload.addEventListener('progress',function(e){
+                            progress = parseInt(e.loaded/e.total*10000)/100 ;
+                            $("#progress").text(progress+"%");
+                        }, false);
+	                }
+                    return XHR;
+                },
+
+            })
+            .done(function(data) {
+                $('#preview-url').attr('src', data.url);
+            });
+
+        });
+    });
+
+ });
+</script>
+</body>
+</html>
